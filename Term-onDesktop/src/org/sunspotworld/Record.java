@@ -100,4 +100,8 @@ public class Record {
     public int getCount(){
         return this.count;
     }
+
+    public int getDataIndex(){
+        return this.dataIndex;
+    }
 }
