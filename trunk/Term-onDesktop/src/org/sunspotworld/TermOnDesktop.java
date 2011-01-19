@@ -1,6 +1,7 @@
 package org.sunspotworld;
 
 import com.sun.spot.io.j2me.radiogram.*;
+import java.io.FileWriter;
 import java.text.DateFormat;
 import javax.microedition.io.*;
 import java.sql.*;
@@ -70,7 +71,7 @@ public class TermOnDesktop {
                 }
                 else if(dataIndex==maxNum){
                     String username =null;
-                    if((username=recordArray.inference())!=null){
+                    if((username=recordArray.inference(dCon))!=null){
                     int confirm = JOptionPane.showConfirmDialog(null, "Are you "+username+"?" );
                     if(confirm != 0){
                              username = (String) JOptionPane.showInputDialog("What you're name?",null);
@@ -79,11 +80,13 @@ public class TermOnDesktop {
                     else {
                                 username = (String) JOptionPane.showInputDialog("What you're name?",null);
                         }
+                    if(username!=null){
                     recordArray.setUsername(username);
                     recordArray.putOnDatabase(dCon);
                     recordArray.drawPressureChart();
                     recordArray.drawAccChart();
                     recordArray.drawLightChart();
+                    }
                     dataIndex++;
                 }
             } catch (Exception e) {
