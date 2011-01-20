@@ -1,6 +1,7 @@
 package org.sunspotworld;
 
 import com.sun.spot.io.j2me.radiogram.*;
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.text.DateFormat;
 import javax.microedition.io.*;
@@ -44,6 +45,8 @@ public class TermOnDesktop {
         recordArray = new RecordArray();
 
        while (true) {
+           FileWriter log = new FileWriter("/log/log.txt",true);
+           BufferedWriter out = new BufferedWriter(log);
             try {
                 rCon.receive(dg);
                 int sunspot=0;
@@ -75,10 +78,15 @@ public class TermOnDesktop {
                     int confirm = JOptionPane.showConfirmDialog(null, "Are you "+username+"?" );
                     if(confirm != 0){
                              username = (String) JOptionPane.showInputDialog("What you're name?",null);
+                             out.write(username+" false\n");
                         }
-                    }
+                     else{
+                            out.write(username+" true\n");
+                     }
+                     }
                     else {
                                 username = (String) JOptionPane.showInputDialog("What you're name?",null);
+                                out.write(username+" no result \n");
                         }
                     if(username!=null){
                     recordArray.setUsername(username);
