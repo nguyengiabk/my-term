@@ -12,7 +12,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 public class RecordArray {
     private Record[] recordArray;
@@ -43,37 +42,51 @@ public class RecordArray {
                     s.executeUpdate(query);
                 }
                 String user="";
-                String username="";
-                double  acc, light, pressure, result;
+                String inferenceUsername="";
                 double min=100.0;
-                query = "select t1.user,t1.ad/t3.aad as acc,t1.ld/t3.ald as light ,t1.pd/t3.apd as pressure, t1.ad/t3.aad*3 + t1.ld/t3.ald + t1.pd/t3.apd*5 as result from "
-                        + "(select d.user, avg(sqrt((t.ax-d.ax)*(t.ax-d.ax)+(t.ay-d.ay)*(t.ay-d.ay)+(t.az-d.az)*(t.az-d.az))) as ad,"
-                        + "avg(sqrt(t.light-d.light)*(t.light-d.light)) as ld,"
-                        + "avg(sqrt((t.a0-d.a0)*(t.a0-d.a0)+(t.a1-d.a1)*(t.a1-d.a1)+(t.a2-d.a2)*(t.a2-d.a2)+(t.a3-d.a3)*(t.a3-d.a3))) as pd"
-                        + " from data as d, temp as t where d.dataIndex=t.dataIndex group by user) as t1,"
-                        + " (select avg(ad) as aad, avg(ld) as ald, avg(pd) as apd from "
-                        + "(select d.user, avg(sqrt((t.ax-d.ax)*(t.ax-d.ax)+(t.ay-d.ay)*(t.ay-d.ay)+(t.az-d.az)*(t.az-d.az))) as ad,"
-                        + "avg(sqrt(t.light-d.light)*(t.light-d.light)) as ld,"
-                        + "avg(sqrt((t.a0-d.a0)*(t.a0-d.a0)+(t.a1-d.a1)*(t.a1-d.a1)+(t.a2-d.a2)*(t.a2-d.a2)+(t.a3-d.a3)*(t.a3-d.a3))) as pd "
-                        + "from data as d, temp as t where d.dataIndex=t.dataIndex group by user) as t2) as t3";
+                query = "select user, dax+day+3*daz+dlight+5*(da0+da1+da2+da3) as result from (select user, avg((t1.ax-t2.ax)*(t1.ax-t2.ax)) as dax, avg((t1.ay-t2.ay)*(t1.ay-t2.ay)) as day, avg((t1.az -t2.az)*(t1.az-t2.az)) as daz, "
+                                + "avg((t1.light - t2.light)*(t1.light - t2.light)) as dlight, avg((t1.a0-t2.a0)*(t1.a0-t2.a0)) as da0, avg((t1.a1-t2.a1)*(t1.a1-t2.a1)) as da1,"
+                                + " avg((t1.a2-t2.a2)*(t1.a2-t2.a2)) as da2, avg((t1.a3-t2.a3)*(t1.a3-t2.a3)) as da3 "
+                            + "from "
+                                    + "(select temp.dataIndex as dataIndex,ax/max as ax, ay/may as ay, az/maz as az, light/mlight as light, a0/ma0 as a0, a1/ma1 as a1, "
+                                        + "a2/ma2 as a2, a3/ma3 as a3 "
+                                        + "from "
+                                            + "(select max(ax) as max, max(ay) as may, max(az) as maz, max(light) as mlight, max(a0) as ma0, max(a1) as ma1, max(a2) as ma2,"
+                                                + " max(a3) as ma3 from data) as m,"
+                                            + " temp) "
+                                    + "as t1,"
+                                    + "(select d.user as user, d.dataIndex as dataIndex, d.ax/max as ax, d.ay/may as ay, d.az/maz as az, d.light/mlight as light,"
+                                            + " d.a0/ma0 as a0, d.a1/ma1 as a1, d.a2/ma2 as a2, d.a3/ma3 as a3 "
+                                        + "from"
+                                            + " data as d,"
+                                            + " (select max(ax) as max, max(ay) as may, max(az) as maz, max(light) as mlight, max(a0) as ma0, max(a1) as ma1,"
+                                                + " max(a2) as ma2, max(a3) as ma3 from data) as m) "
+                                    + "as t2 "
+                            + "where t1.dataIndex = t2.dataIndex group by user) as ta";
                 s.executeQuery(query);
                 ResultSet rs = s.getResultSet();
                 while(rs.next()){
                     user=rs.getString("user");
-                    acc = rs.getDouble("acc");
-                    light = rs.getDouble("light");
-                    pressure = rs.getDouble("pressure");
-                    result = rs.getDouble("result");
-                    System.out.println(user+" "+acc+" "+light+" "+pressure+" "+ result);
+//                    double dax = rs.getDouble("dax");
+//                    double day = rs.getDouble("day");
+//                    double daz = rs.getDouble("daz");
+//                    double dlight = rs.getDouble("dlight");
+//                    double da0 = rs.getDouble("da0");
+//                    double da1 = rs.getDouble("da1");
+//                    double da2 = rs.getDouble("da2");
+//                    double da3 = rs.getDouble("da3");
+//                    double result = dax+day+3*daz+dlight+5*(da0+da1+da2+da3);
+//                    System.out.println(user+" "+dax+" "+day+" "+daz+" "+" "+dlight+" "+da0+" "+da1+" "+da2+" "+da3+" "+result);
+                    double result = rs.getDouble("result");
                     if(result<min) {
-                        username = user;
+                        inferenceUsername = user;
                      //   System.out.println(username);
                         min=result;
                     }
                }
                s.close();
                //System.out.println(username);
-               return username;
+               return inferenceUsername;
            } catch (SQLException ex) {
                 Logger.getLogger(RecordArray.class.getName()).log(Level.SEVERE, null, ex);
             }
