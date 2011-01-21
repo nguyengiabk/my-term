@@ -18,7 +18,7 @@ public class TermOnDesktop {
     DateFormat fmt = DateFormat.getTimeInstance();
     java.sql.Connection dCon = null;
     int dataIndex = 0;
-    int maxNum =10;
+    int maxNum =15;
     RecordArray recordArray;
 
     public void run() throws Exception {
@@ -45,8 +45,7 @@ public class TermOnDesktop {
         recordArray = new RecordArray();
 
        while (true) {
-           FileWriter log = new FileWriter("/log/log.txt",true);
-           BufferedWriter out = new BufferedWriter(log);
+           FileWriter log = new FileWriter("log/log.txt",true);
             try {
                 rCon.receive(dg);
                 int sunspot=0;
@@ -74,6 +73,7 @@ public class TermOnDesktop {
                 }
                 else if(dataIndex==maxNum){
                     String username =null;
+                    BufferedWriter out = new BufferedWriter(log);
                     if((username=recordArray.inference(dCon))!=null){
                     int confirm = JOptionPane.showConfirmDialog(null, "Are you "+username+"?" );
                     if(confirm != 0){
@@ -96,6 +96,7 @@ public class TermOnDesktop {
                     recordArray.drawLightChart();
                     }
                     dataIndex++;
+                    out.close();
                 }
             } catch (Exception e) {
                 System.err.println("Caught " + e +  " while reading sensor data.");
