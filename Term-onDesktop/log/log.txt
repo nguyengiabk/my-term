@@ -1,0 +1,4 @@
+gia true
+null false
+gia no result 
+gia true

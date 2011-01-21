@@ -18,9 +18,9 @@ public class RecordArray {
     private int top;
     private String username;
     private int count;
-    private int maxNum=10;
+    private int maxNum=15;
     public RecordArray(){
-        this.recordArray = new Record[10];
+        this.recordArray = new Record[maxNum];
         this.top = 0;
     }
 
@@ -41,8 +41,8 @@ public class RecordArray {
                                 +this.recordArray[i].getA1()+","+this.recordArray[i].getA2()+","+this.recordArray[i].getA3()+")";
                     s.executeUpdate(query);
                 }
-                String user="";
-                String inferenceUsername="";
+                String user=null;
+                String inferenceUsername=null;
                 double min=100.0;
                 query = "select user, dax+day+3*daz+dlight+5*(da0+da1+da2+da3) as result from (select user, avg((t1.ax-t2.ax)*(t1.ax-t2.ax)) as dax, avg((t1.ay-t2.ay)*(t1.ay-t2.ay)) as day, avg((t1.az -t2.az)*(t1.az-t2.az)) as daz, "
                                 + "avg((t1.light - t2.light)*(t1.light - t2.light)) as dlight, avg((t1.a0-t2.a0)*(t1.a0-t2.a0)) as da0, avg((t1.a1-t2.a1)*(t1.a1-t2.a1)) as da1,"
@@ -78,6 +78,7 @@ public class RecordArray {
 //                    double result = dax+day+3*daz+dlight+5*(da0+da1+da2+da3);
 //                    System.out.println(user+" "+dax+" "+day+" "+daz+" "+" "+dlight+" "+da0+" "+da1+" "+da2+" "+da3+" "+result);
                     double result = rs.getDouble("result");
+                    System.out.println(user+" "+result);
                     if(result<min) {
                         inferenceUsername = user;
                      //   System.out.println(username);
@@ -98,13 +99,14 @@ public class RecordArray {
     }
     
     public void putOnDatabase(Connection dCon){
-         try {
+        int maxCount=0;
+        try {
                     Statement s = dCon.createStatement ();
                     String query = "select max(count) from data where user = '"+this.username+"'";
                     s.executeQuery (query);
                     ResultSet rs = s.getResultSet();
                     while (rs.next ()){
-                            count  =  rs.getInt ("max(count)");
+                           maxCount  =  rs.getInt ("max(count)");
                             //System.out.println(count);
                     }
                     s.close ();
@@ -112,11 +114,16 @@ public class RecordArray {
                         System.out.println(e);
                         return ;
                  }
-        this.count = count+1;
-        for(int i=0; i<maxNum; i++){
-        this.recordArray[i].setUser(this.username, this.count);
-        while(this.recordArray[i].putOnDatabase(dCon)==false);
-        this.top=0;
+        if(maxCount<maxNum){
+            this.count = maxCount+1;
+            for(int i=0; i<maxNum; i++){
+                this.recordArray[i].setUser(this.username, this.count);
+                while(this.recordArray[i].putOnDatabase(dCon)==false);
+                this.top=0;
+             }
+        }
+        else{
+        
         }
     }
     
@@ -192,20 +199,5 @@ public class RecordArray {
         } catch (IOException e) {
             System.err.println(e);
         }
-    }
-
-
-     private boolean averageCompare(Record[] a, Record[] b){
-        double averageAx;
-        double averageAy;
-        double averageAz;
-        int        averageLight;
-        float     averageA0;
-        float     averageA1;
-        float     averageA2;
-        float     averageA3;
-
-        return false;
-    }
+    } 
 }
-
