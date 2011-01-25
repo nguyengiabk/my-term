@@ -47,6 +47,7 @@ public class TermOnDesktop {
        while (true) {
            FileWriter log = new FileWriter("log/log.txt",true);
             try {
+
                 rCon.receive(dg);
                 int sunspot=0;
                 String addr = dg.getAddress();
@@ -55,48 +56,50 @@ public class TermOnDesktop {
                 }else if(addr.equals("0014.4F01.0000.5955")){
                     sunspot = 2;
                 }
-                long now = dg.readLong();
-                double ax =dg.readDouble();
-                double ay =dg.readDouble();
-                double az =dg.readDouble();
-                int light =dg.readInt();
-                float a0 = dg.readFloat();
-                float a1 = dg.readFloat();
-                float a2 = dg.readFloat();
-                float a3 = dg.readFloat();
-                if((check(a0,a1,a2,a3)==true)&&(dataIndex<maxNum)){
-                    dataIndex ++;
-                    recordArray.addRecord(new Record(sunspot, dataIndex, ax, ay, az, light, a0, a1, a2, a3));
-               }
-                else if (check(a0,a1,a2,a3)==false){
-                    dataIndex = 0;
-                }
-                else if(dataIndex==maxNum){
-                    String username =null;
-                    BufferedWriter out = new BufferedWriter(log);
-                    if((username=recordArray.inference(dCon))!=null){
-                    int confirm = JOptionPane.showConfirmDialog(null, "Are you "+username+"?" );
-                    if(confirm != 0){
-                             username = (String) JOptionPane.showInputDialog("What you're name?",null);
-                             out.write(username+" false\n");
-                        }
-                     else{
-                            out.write(username+" true\n");
-                     }
-                     }
-                    else {
-                                username = (String) JOptionPane.showInputDialog("What you're name?",null);
-                                out.write(username+" no result \n");
-                        }
-                    if(username!=null){
-                    recordArray.setUsername(username);
-                    recordArray.putOnDatabase(dCon);
-                    recordArray.drawPressureChart();
-                    recordArray.drawAccChart();
-                    recordArray.drawLightChart();
+                if(sunspot!=0){
+                    long now = dg.readLong();
+                    double ax =dg.readDouble();
+                    double ay =dg.readDouble();
+                    double az =dg.readDouble();
+                    int light =dg.readInt();
+                    float a0 = dg.readFloat();
+                    float a1 = dg.readFloat();
+                    float a2 = dg.readFloat();
+                    float a3 = dg.readFloat();
+                    if((check(a0,a1,a2,a3)==true)&&(dataIndex<maxNum)){
+                        dataIndex ++;
+                        recordArray.addRecord(new Record(sunspot, dataIndex, ax, ay, az, light, a0, a1, a2, a3));
+                   }
+                    else if (check(a0,a1,a2,a3)==false){
+                        dataIndex = 0;
                     }
-                    dataIndex++;
-                    out.close();
+                    else if(dataIndex==maxNum){
+                        String username =null;
+                        BufferedWriter out = new BufferedWriter(log);
+                        if((username=recordArray.inference(dCon))!=null){
+                        int confirm = JOptionPane.showConfirmDialog(null, "Are you "+username+"?" );
+                        if(confirm != 0){
+                                 username = (String) JOptionPane.showInputDialog("What you're name?",null);
+                                 out.write(username+" false\n");
+                            }
+                         else{
+                                out.write(username+" true\n");
+                         }
+                         }
+                        else {
+                                    username = (String) JOptionPane.showInputDialog("What you're name?",null);
+                                    out.write(username+" no result \n");
+                            }
+                        if(username!=null){
+                        recordArray.setUsername(username);
+                        recordArray.putOnDatabase(dCon);
+                        recordArray.drawPressureChart();
+                        recordArray.drawAccChart();
+                        recordArray.drawLightChart();
+                        }
+                        dataIndex++;
+                        out.close();
+                    }
                 }
             } catch (Exception e) {
                 System.err.println("Caught " + e +  " while reading sensor data.");

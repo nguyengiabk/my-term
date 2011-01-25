@@ -19,6 +19,7 @@ public class RecordArray {
     private String username;
     private int count;
     private int maxNum=15;
+    private int maxArrayNum =15;
     public RecordArray(){
         this.recordArray = new Record[maxNum];
         this.top = 0;
@@ -44,39 +45,22 @@ public class RecordArray {
                 String user=null;
                 String inferenceUsername=null;
                 double min=100.0;
-                query = "select user, dax+day+3*daz+dlight+5*(da0+da1+da2+da3) as result from (select user, avg((t1.ax-t2.ax)*(t1.ax-t2.ax)) as dax, avg((t1.ay-t2.ay)*(t1.ay-t2.ay)) as day, avg((t1.az -t2.az)*(t1.az-t2.az)) as daz, "
-                                + "avg((t1.light - t2.light)*(t1.light - t2.light)) as dlight, avg((t1.a0-t2.a0)*(t1.a0-t2.a0)) as da0, avg((t1.a1-t2.a1)*(t1.a1-t2.a1)) as da1,"
-                                + " avg((t1.a2-t2.a2)*(t1.a2-t2.a2)) as da2, avg((t1.a3-t2.a3)*(t1.a3-t2.a3)) as da3 "
-                            + "from "
-                                    + "(select temp.dataIndex as dataIndex,ax/max as ax, ay/may as ay, az/maz as az, light/mlight as light, a0/ma0 as a0, a1/ma1 as a1, "
-                                        + "a2/ma2 as a2, a3/ma3 as a3 "
-                                        + "from "
-                                            + "(select max(ax) as max, max(ay) as may, max(az) as maz, max(light) as mlight, max(a0) as ma0, max(a1) as ma1, max(a2) as ma2,"
-                                                + " max(a3) as ma3 from data) as m,"
-                                            + " temp) "
-                                    + "as t1,"
-                                    + "(select d.user as user, d.dataIndex as dataIndex, d.ax/max as ax, d.ay/may as ay, d.az/maz as az, d.light/mlight as light,"
-                                            + " d.a0/ma0 as a0, d.a1/ma1 as a1, d.a2/ma2 as a2, d.a3/ma3 as a3 "
-                                        + "from"
-                                            + " data as d,"
-                                            + " (select max(ax) as max, max(ay) as may, max(az) as maz, max(light) as mlight, max(a0) as ma0, max(a1) as ma1,"
-                                                + " max(a2) as ma2, max(a3) as ma3 from data) as m) "
-                                    + "as t2 "
-                            + "where t1.dataIndex = t2.dataIndex group by user) as ta";
+                query = "select user, avg((t1.ax-t2.ax)*(t1.ax-t2.ax)) + avg((t1.ay-t2.ay)*(t1.ay-t2.ay)) + 2*avg((t1.az -t2.az)*(t1.az-t2.az)) + "
+                        + "avg((t1.light - t2.light)*(t1.light - t2.light)) +5*(avg((t1.a0-t2.a0)*(t1.a0-t2.a0)) + avg((t1.a1-t2.a1)*(t1.a1-t2.a1)) + "
+                        + "avg((t1.a2-t2.a2)*(t1.a2-t2.a2)) + avg((t1.a3-t2.a3)*(t1.a3-t2.a3))) as result"
+                        + " from "
+                        + "(select temp.dataIndex as dataIndex,ax/max as ax, ay/may as ay, az/maz as az, light/mlight as light, a0/ma0 as a0, a1/ma1 as a1, a2/ma2 as a2, a3/ma3 as a3 "
+                        + "from "
+                        + "(select max(ax) as max, max(ay) as may, max(az) as maz, max(light) as mlight, max(a0) as ma0, max(a1) as ma1, max(a2) as ma2, max(a3) as ma3 "
+                        + "from data) as m, temp) as t1,"
+                        + "(select d.user as user, d.dataIndex as dataIndex, d.ax/max as ax, d.ay/may as ay, d.az/maz as az, d.light/mlight as light, d.a0/ma0 as a0, d.a1/ma1 as a1, d.a2/ma2 as a2, d.a3/ma3 as a3"
+                        + " from data as d,"
+                        + " (select max(ax) as max, max(ay) as may, max(az) as maz, max(light) as mlight, max(a0) as ma0, max(a1) as ma1, max(a2) as ma2, max(a3) as ma3 from data) as m) as t2"
+                        + " where t1.dataIndex = t2.dataIndex group by user";
                 s.executeQuery(query);
                 ResultSet rs = s.getResultSet();
                 while(rs.next()){
                     user=rs.getString("user");
-//                    double dax = rs.getDouble("dax");
-//                    double day = rs.getDouble("day");
-//                    double daz = rs.getDouble("daz");
-//                    double dlight = rs.getDouble("dlight");
-//                    double da0 = rs.getDouble("da0");
-//                    double da1 = rs.getDouble("da1");
-//                    double da2 = rs.getDouble("da2");
-//                    double da3 = rs.getDouble("da3");
-//                    double result = dax+day+3*daz+dlight+5*(da0+da1+da2+da3);
-//                    System.out.println(user+" "+dax+" "+day+" "+daz+" "+" "+dlight+" "+da0+" "+da1+" "+da2+" "+da3+" "+result);
                     double result = rs.getDouble("result");
                     System.out.println(user+" "+result);
                     if(result<min) {
@@ -114,7 +98,7 @@ public class RecordArray {
                         System.out.println(e);
                         return ;
                  }
-        if(maxCount<maxNum){
+        if(maxCount<maxArrayNum){
             this.count = maxCount+1;
             for(int i=0; i<maxNum; i++){
                 this.recordArray[i].setUser(this.username, this.count);
@@ -123,7 +107,41 @@ public class RecordArray {
              }
         }
         else{
-        
+        try{
+            Statement s = dCon.createStatement();
+            String query = "";
+            for(int i=1;i<maxArrayNum;i++){
+                int j=i+1;
+                query="update data as d,(select * from data where count = "+j+" and user = '"+this.username+"') as t "
+                        + "set "
+                        + "d.ax = t.ax, "
+                        + "d.ay=t.ay,"
+                        + " d.az=t.az,"
+                        + " d.light = t.light,"
+                        + "d.a0=t.a0,"
+                        + "d.a1=t.a1,"
+                        + "d.a2=t.a2,"
+                        + "d.a3=t.a3"
+                        + " where d.user='"+this.username+"' and d.count = "+i+"  and d.dataIndex = t.dataIndex";
+                System.out.println(query);
+                s.executeUpdate(query);
+            }
+            query = "update data as d, temp as t "
+                    + "set"
+                    + " d.ax = t.ax, "
+                    + "d.ay = t.ay, "
+                    + "d.az = t.az,"
+                    + " d.light = t.light, "
+                    + "d.a0 = t.a0, "
+                    + "d.a1 = t.a1,"
+                    + " d.a2 = t.a2,"
+                    + " d.a3 = t.a3"
+                    + " where d.user = '"+this.username+"' and count = "+maxArrayNum +" and d.dataIndex = t.dataIndex";
+            System.out.println(query);
+            s.executeUpdate(query);
+        } catch(Exception e){
+            System.out.println(e);
+        }
         }
     }
     
@@ -199,5 +217,6 @@ public class RecordArray {
         } catch (IOException e) {
             System.err.println(e);
         }
-    } 
+    }
 }
+
