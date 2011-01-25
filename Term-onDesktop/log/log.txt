@@ -1,4 +1,5 @@
+tacky no result 
+tacky true
+gia false
 gia true
-null false
-gia no result 
-gia true
+tacky true
